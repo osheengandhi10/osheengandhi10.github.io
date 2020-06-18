@@ -1,0 +1,244 @@
+{% load static %}
+{% csrf_token %}
+
+<html>
+<head>
+    <title>
+        Springboard : : Stratemis
+	</title>
+	<script src="/static/angular.min.js"></script>
+	<link rel="stylesheet" href="/static/bootstrap.min.css"/>
+	<!-- <link href="{% static 'common/font-awesome/css/all.css' %}" rel="stylesheet"> -->
+	<link rel="shortcut icon" type="image/png" href="/static/common/img/png/springboard-mail-logo.png">
+</head>
+
+<body ng-app="myapp" ng-controller="loginCtrl">
+	<div class="special-container">
+    
+		<div style='display: block;' class="modal mt-5" tabindex="-1" role="dialog" data-backdrop="static"
+			data-keyboard="false">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content text-white">
+					<div class="modal-header justify-content-center" style="background: #ef7f1a !important;">
+						<img class="img-thumbnail" style="width: 24%;border-radius: 8rem;border: .3rem solid #835120;" src="/static/login.png" />
+					</div>
+					<div class="modal-body" style="background: #2b2a29 !important;">
+						<div class="col-md-10 m-auto" ng-hide ="forgetpassword">
+							<div class="col-md-12">
+								<form>
+									<div class="form-group">
+										<label for="user_name">
+                      
+											Username
+										</label>
+										<div class="input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text"><i class="fas fa-user" title="Username"></i></span>
+											</div>
+											<input type="text" autocomplete="off" name="" class="form-control input_user"  id = "Username" ng-model="username" />
+										</div>
+										
+									</div>
+									<div class="form-group">
+										<label for="password">
+											Password 
+										</label>
+										<div class="input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text"><i class="fas fa-key"></i></span>
+											</div>
+											<input type="password" id="password" class="form-control input_pass" ng-model="password"/>
+											<div class="input-group-prepend">
+												<span class="pass_hint" ng-click="toggle_pass()"><i id="pass_toggle" class="fas fa-eye-slash"></i></span>
+											</div>
+										</div>
+									</div>
+									<div class="form-group">
+					<button  class="btn login_btn" ng-click="login(username, password)" >Login</button>
+					<!-- <a href="" ng-click="forgetpassword=true;user = {}">Forgot Password</a> -->
+                    <p  style= "color: red; display:none;" id = "error">User ID & Password both are mandatory fields.</p>
+
+									</div>
+								</form>
+							</div>
+						</div>
+						
+					</div>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		var app = angular.module('myapp', []);
+		
+		// var foo = angular.module('foo', ['bar']);
+
+app.config(['$httpProvider', function($httpProvider) {
+    $httpProvider.defaults.xsrfCookieName = 'csrftoken';
+    $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
+}]);
+
+		app.controller('loginCtrl',['$scope','$http','$timeout', function ($scope, $http, $timeout) {
+			$http.get('auth/login/')
+			.then(function(response){
+				if(response.data=='logged_in'){
+						window.location.href='auth/profile/'
+					
+					
+				}
+			});
+			$scope.login = function(username, password){
+                
+				if(username && password){
+					$http.post('auth/login/', {'username': username, 'password':password})
+					.then(function(response){
+			
+			
+						window.location.href='auth/profile/'
+					},
+					function(error){
+            
+            window.location.href = '/signup/'
+            // $scope.errormessage = error.data;
+						// document.getElementById('error').style.display = 'block'
+						// document.getElementById('error').innerHTML = error.data
+            
+						// $timeout(function(){
+						// document.getElementById('error').style.display = 'none'
+
+						// 	$scope.errormessage = false;
+						// }, 4000);
+					});
+				}
+				else{
+          
+						document.getElementById('error').style.display = 'block'
+
+          $scope.errormessage = 'User ID & Password both are mandatory fields.';
+
+          
+					$timeout(function(){
+						document.getElementById('error').style.display = 'none'
+
+						$scope.errormessage = false;
+					}, 4000);
+				}
+			}
+			$scope.getmenus =  function (username){
+				
+				$http({
+
+method: 'GET',
+
+url: '/springboard/',
+
+data: username
+
+}).then(function success(response) {
+
+// this function will be called when the request is success
+
+}, function error(response) {
+
+// this function will be called when the request returned error status
+
+});
+
+			}
+			$scope.toggle_pass = function(){
+				var password = document.getElementById('password');
+				if(password.type == 'text'){
+					password.setAttribute('type', 'password');
+					document.getElementById('pass_toggle').className = "fas fa-eye-slash";
+				}
+				else{
+					password.setAttribute('type', 'text');
+					document.getElementById('pass_toggle').className = "fas fa-eye";
+				}
+            }
+            
+           
+			$scope.sendForgotPasswordLink = function(){
+            if($scope.forgettype=='username'){
+                var data = {
+                    'username' : $scope.user.username
+                }
+            }
+            else{
+                var data = {
+                    'email' : $scope.user.email
+                }
+            }
+            $http.post('login/reset', data)
+            .then(function(response){
+                if(response){
+                    $scope.resetPass = response.data;
+                    $timeout(function() {
+                        $route.reload();
+                    }, 5000);
+                }
+            },
+            function(error){
+                $scope.resetPass = error.data
+                $timeout(function() {
+                    $scope.resetPass = false;
+                }, 5000);
+            });
+        }
+		}]);
+	</script>
+</body>
+
+</html>
+<style>
+	body,
+	html {
+		margin: 0;
+		padding: 0;
+		height: 100%;
+		background: #ef7f1a;
+		background-image: linear-gradient(180deg, #2b2a29, #ef7f1a);
+	}
+
+	.radial-br {
+		border-radius: 3rem !important;
+	}
+
+	.custom-control-label {
+		color: #fff;
+	}
+
+	.text-right {
+		float: right;
+	}
+
+	.forgot_pass {
+		cursor: pointer;
+		color: #e08790;
+	}
+
+	.forgot_pass:hover {
+		color: #0056b3;
+		text-decoration: underline;
+	}
+
+	.pass_hint{
+		display: -ms-flexbox;
+		display: flex;
+		-ms-flex-align: center;
+		align-items: center;
+		padding: .375rem .75rem;
+		margin-bottom: 0;
+		font-size: 1rem;
+		font-weight: 400;
+		line-height: 1.5;
+		color: #495057;
+		text-align: center;
+		white-space: nowrap;
+		border: 1px solid #ffffff;
+		background: white;
+		border-radius: 0rem .25rem .25rem 0rem;
+	}
+</style>
